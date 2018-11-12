@@ -10,15 +10,17 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Promise;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.net.URI;
+import java.text.DateFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class CookieManagerModule extends ReactContextBaseJavaModule {
 
@@ -28,6 +30,8 @@ public class CookieManagerModule extends ReactContextBaseJavaModule {
     private static final String COOKIE_DOMAIN_PROPERTY = "Domain";
     private static final String COOKIE_PATH_PROPERTY = "Path";
     private static final String COOKIE_EXPIRES_PROPERTY = "Expires";
+
+    private static final String ISO_DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     private ForwardingCookieHandler cookieHandler;
 
@@ -60,7 +64,7 @@ public class CookieManagerModule extends ReactContextBaseJavaModule {
                 cookieString += ' ' + COOKIE_PATH_PROPERTY + '=' + cookiePath + ';';
             }
             if( !cookieExpiration.isEmpty() ) {
-                cookieString += ' ' + COOKIE_EXPIRES_PROPERTY + '=' + cookieExpiration + ';';
+                cookieString += ' ' + COOKIE_EXPIRES_PROPERTY + '=' + this.convertToUTC( cookieExpiration ) + ';';
             }
 
             this.setCookie( cookieOrigin, cookieString );
@@ -143,4 +147,11 @@ public class CookieManagerModule extends ReactContextBaseJavaModule {
             }
         }
     }
+
+	private String convertToUTC(String timestamp) throws ParseException, Exception {
+		SimpleDateFormat parser = new SimpleDateFormat( ISO_DATE_FORMAT_PATTERN );
+		Date parsedDate = parser.parse(timestamp);
+		SimpleDateFormat utcFormatter = new SimpleDateFormat( "E, dd MMM YYYY HH:mm:ss" );
+		return utcFormatter.format(parsedDate) + " GMT";
+   }
 }
