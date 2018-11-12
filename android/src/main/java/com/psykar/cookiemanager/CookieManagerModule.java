@@ -43,13 +43,13 @@ public class CookieManagerModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void set(ReadableMap cookie, boolean useWebKit, final Promise promise) throws Exception {
         try {
-            String cookieName = this.confirmCookieProperty( "name", cookie.getString( "name" ), true );
-            String cookieValue = this.confirmCookieProperty( "value", cookie.getString( "value" ), true );
-            String cookieOrigin = this.confirmCookieProperty( "origin", cookie.getString( "origin" ), true );
-            String cookieDomain = this.confirmCookieProperty( "domain", cookie.getString( "domain" ), false );
-            String cookiePath = this.confirmCookieProperty( "path", cookie.getString( "path" ), false );
-            String cookieVersion = this.confirmCookieProperty( "version", cookie.getString( "version" ), false );
-            String cookieExpiration = this.confirmCookieProperty( "expiration", cookie.getString( "expiration" ), false );
+            String cookieName = this.confirmCookieProperty( "name", cookie, true );
+            String cookieValue = this.confirmCookieProperty( "value", cookie, true );
+            String cookieOrigin = this.confirmCookieProperty( "origin", cookie, true );
+            String cookieDomain = this.confirmCookieProperty( "domain", cookie, false );
+            String cookiePath = this.confirmCookieProperty( "path", cookie, false );
+            String cookieVersion = this.confirmCookieProperty( "version", cookie, false );
+            String cookieExpiration = this.confirmCookieProperty( "expiration", cookie, false );
 
             String cookieString = cookieName + '=' + cookieValue + ';';
 
