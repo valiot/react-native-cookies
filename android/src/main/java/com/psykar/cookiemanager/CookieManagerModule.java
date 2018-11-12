@@ -10,6 +10,8 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Promise;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URI;
@@ -19,6 +21,13 @@ import java.util.List;
 import java.util.Map;
 
 public class CookieManagerModule extends ReactContextBaseJavaModule {
+
+    private static final String COOKIE_HEADER = "Cookie";
+    private static final String VERSION_ZERO_HEADER = "Set-cookie";
+
+    private static final String COOKIE_DOMAIN_PROPERTY = "Domain";
+    private static final String COOKIE_PATH_PROPERTY = "Path";
+    private static final String COOKIE_EXPIRES_PROPERTY = "Expires";
 
     private ForwardingCookieHandler cookieHandler;
 
@@ -33,7 +42,32 @@ public class CookieManagerModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void set(ReadableMap cookie, boolean useWebKit, final Promise promise) throws Exception {
-        throw new Exception("Cannot call on android, try setFromResponse");
+        try {
+            String cookieName = this.confirmCookieProperty( "name", cookie.getString( "name" ), true );
+            String cookieValue = this.confirmCookieProperty( "value", cookie.getString( "value" ), true );
+            String cookieOrigin = this.confirmCookieProperty( "origin", cookie.getString( "origin" ), true );
+            String cookieDomain = this.confirmCookieProperty( "domain", cookie.getString( "domain" ), false );
+            String cookiePath = this.confirmCookieProperty( "path", cookie.getString( "path" ), false );
+            String cookieVersion = this.confirmCookieProperty( "version", cookie.getString( "version" ), false );
+            String cookieExpiration = this.confirmCookieProperty( "expiration", cookie.getString( "expiration" ), false );
+
+            String cookieString = cookieName + '=' + cookieValue + ';';
+
+            if( !cookieDomain.isEmpty() ) {
+                cookieString += ' ' + COOKIE_DOMAIN_PROPERTY + '=' + cookieDomain + ';';
+            }
+            if( !cookiePath.isEmpty() ) {
+                cookieString += ' ' + COOKIE_PATH_PROPERTY + '=' + cookiePath + ';';
+            }
+            if( !cookieExpiration.isEmpty() ) {
+                cookieString += ' ' + COOKIE_EXPIRES_PROPERTY + '=' + cookieExpiration + ';';
+            }
+
+            this.setCookie( cookieOrigin, cookieString );
+            promise.resolve( true );
+        } catch( Exception e ) {
+            promise.reject(e);
+        }
     }
 
     @ReactMethod
@@ -73,7 +107,7 @@ public class CookieManagerModule extends ReactContextBaseJavaModule {
             for (int i = 0; i < cookies.length; i++) {
                 String[] cookie = cookies[i].split("=", 2);
                 if (cookie.length > 1) {
-                  map.putString(cookie[0].trim(), cookie[1]);
+                    map.putString(cookie[0].trim(), cookie[1]);
                 }
             }
         }
@@ -87,5 +121,26 @@ public class CookieManagerModule extends ReactContextBaseJavaModule {
                 promise.resolve(null);
             }
         });
+    }
+
+    private void setCookie( String url, String value ) throws URISyntaxException, IOException {
+        URI uri = new URI(url);
+        Map<String, List<String>> cookieMap = new HashMap<>();
+        cookieMap.put( VERSION_ZERO_HEADER, Collections.singletonList(value) );
+        this.cookieHandler.put( uri, cookieMap );
+    }
+
+    private String confirmCookieProperty( String propName, ReadableMap cookieObj, Boolean isNecessary ) throws Exception {
+        String propValue = cookieObj.hasKey( propName ) ? cookieObj.getString( propName ) : "";
+
+        if( propValue != null && !propValue.isEmpty() ) {
+            return propValue;
+        } else {
+            if( isNecessary ) {
+                throw new Exception( propName + " property of cookie obj must have a value" );
+            } else {
+                return "";
+            }
+        }
     }
 }
