@@ -152,7 +152,11 @@ RCT_EXPORT_METHOD(
             [d setObject:c.name forKey:@"name"];
             [d setObject:c.domain forKey:@"domain"];
             [d setObject:c.path forKey:@"path"];
-            [d setObject:[self.formatter stringFromDate:c.expiresDate] forKey:@"expiresDate"];
+            if( c.expiresDate == nil || c.expiresDate == (id)[NSNull null] ) {
+				[d setObject:@"" forKey:@"expiresDate"];
+			} else {
+            	[d setObject:[self.formatter stringFromDate:c.expiresDate] forKey:@"expiresDate"];
+			}
             [cookies setObject:d forKey:c.name];
         }
         resolve(cookies);
